@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>食堂窗口查询 - 校园食堂中心</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">校园食堂中心</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="index.html">首页</a></li>
+          <li class="nav-item"><a class="nav-link active" href="canteen-list.html">食堂查询</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-chart.html">数据统计</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-food.html">菜品浏览</a></li>
+          <li class="nav-item"><a class="nav-link" href="three-d/canteen-scene.html">食堂三维</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">食堂窗口查询</h2>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label">楼层</label>
+            <select id="floorFilter" class="form-select">
+              <option value="">全部楼层</option>
+              <option value="1">1 楼</option>
+              <option value="2">2 楼</option>
+              <option value="3">3 楼</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">窗口类型</label>
+            <select id="typeFilter" class="form-select">
+              <option value="">全部类型</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">开放状态</label>
+            <select id="statusFilter" class="form-select">
+              <option value="">全部状态</option>
+              <option value="open">营业中</option>
+              <option value="close">已打烊</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button id="resetBtn" class="btn btn-outline-success w-100">重置筛选</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultCount" class="text-muted mb-3">共 0 个窗口</div>
+
+    <div id="windowList" class="row g-4">
+      <!-- 卡片由 JS 动态生成 -->
+    </div>
+
+    <div id="emptyTip" class="text-center text-muted py-5 d-none">
+      <p>没有匹配的窗口，请调整筛选条件。</p>
+    </div>
+  </main>
+
+  <footer class="bg-light py-4 text-center">
+    <p>校园食堂公共信息与数据展示中心 © 2026</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let allWindows = [];
+
+    const floorFilter = document.getElementById('floorFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const resetBtn = document.getElementById('resetBtn');
+    const windowList = document.getElementById('windowList');
+    const resultCount = document.getElementById('resultCount');
+    const emptyTip = document.getElementById('emptyTip');
+
+    const typeMap = { "家常菜": "success", "面食": "warning", "清真": "info", "风味": "primary", "快餐": "danger", "饮品": "secondary" };
+    const statusMap = { "open": "营业中", "close": "已打烊" };
+
+    function render(list) {
+      windowList.innerHTML = '';
+      resultCount.textContent = `共 ${list.length} 个窗口`;
+      emptyTip.classList.toggle('d-none', list.length > 0);
+
+      list.forEach(item => {
+        const typeColor = typeMap[item.type] || 'secondary';
+        const statusBadge = item.status === 'open'
+          ? '<span class="badge bg-success">营业中</span>'
+          : '<span class="badge bg-secondary">已打烊</span>';
+        const card = `
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-${typeColor}">${item.type}</span>
+                  ${statusBadge}
+                </div>
+                <h5 class="card-title">${item.name}</h5>
+                <p class="card-text mb-1"><small class="text-muted">窗口编号：${item.window}</small></p>
+                <p class="card-text"><small class="text-muted">所在楼层：${item.floor} 楼</small></p>
+              </div>
+            </div>
+          </div>`;
+        windowList.insertAdjacentHTML('beforeend', card);
+      });
+    }
+
+    function applyFilter() {
+      const f = floorFilter.value;
+      const t = typeFilter.value;
+      const s = statusFilter.value;
+      const filtered = allWindows.filter(w =>
+        (!f || w.floor === f) &&
+        (!t || w.type === t) &&
+        (!s || w.status === s)
+      );
+      render(filtered);
+    }
+
+    function initTypeOptions() {
+      const types = [...new Set(allWindows.map(w => w.type))];
+      types.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        typeFilter.appendChild(opt);
+      });
+    }
+
+    fetch('data/canteen-data.json')
+      .then(res => res.json())
+      .then(data => {
+        allWindows = data.windows;
+        initTypeOptions();
+        render(allWindows);
+      })
+      .catch(err => {
+        windowList.innerHTML = '<div class="col-12 text-center text-danger py-5">数据加载失败，请检查网络或 data/canteen-data.json 是否存在。</div>';
+        console.error(err);
+      });
+
+    [floorFilter, typeFilter, statusFilter].forEach(el => el.addEventListener('change', applyFilter));
+    resetBtn.addEventListener('click', () => {
+      floorFilter.value = '';
+      typeFilter.value = '';
+      statusFilter.value = '';
+      render(allWindows);
+    });
+  </script>
+</body>
+</html>
