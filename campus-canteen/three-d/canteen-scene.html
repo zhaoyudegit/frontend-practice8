@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>食堂三维导览 - 校园食堂中心</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    #scene-container { width: 100%; height: 560px; border-radius: 12px; overflow: hidden; background: #eef2f3; }
+    .scene-tip { font-size: 0.9rem; color: #6c757d; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="../index.html">校园食堂中心</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="../index.html">首页</a></li>
+          <li class="nav-item"><a class="nav-link" href="../canteen-list.html">食堂查询</a></li>
+          <li class="nav-item"><a class="nav-link" href="../canteen-chart.html">数据统计</a></li>
+          <li class="nav-item"><a class="nav-link" href="../canteen-food.html">菜品浏览</a></li>
+          <li class="nav-item"><a class="nav-link active" href="canteen-scene.html">食堂三维</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-3">食堂三维导览</h2>
+    <p class="scene-tip mb-3">鼠标左键旋转视角，滚轮缩放，右键平移。场景展示食堂楼层、窗口柜台、取餐台与桌椅分布。</p>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div id="scene-container"></div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-md-4">
+        <div class="card"><div class="card-body text-center">
+          <div class="icon-box bg-success text-white mb-2">🏢</div>
+          <h6>窗口柜台</h6>
+          <p class="text-muted small mb-0">沿墙排列的取餐窗口</p>
+        </div></div>
+      </div>
+      <div class="col-md-4">
+        <div class="card"><div class="card-body text-center">
+          <div class="icon-box bg-danger text-white mb-2">🍴</div>
+          <h6>取餐台</h6>
+          <p class="text-muted small mb-0">中央集中取餐区域</p>
+        </div></div>
+      </div>
+      <div class="col-md-4">
+        <div class="card"><div class="card-body text-center">
+          <div class="icon-box bg-info text-white mb-2">🪑</div>
+          <h6>就餐区</h6>
+          <p class="text-muted small mb-0">散布的餐桌与座椅</p>
+        </div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-light py-4 text-center">
+    <p>校园食堂公共信息与数据展示中心 © 2026</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('scene-container');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xeef2f3);
+    scene.fog = new THREE.Fog(0xeef2f3, 30, 80);
+
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 200);
+    camera.position.set(18, 16, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 2, 0);
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+    // 灯光
+    const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambient);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+    dir.position.set(15, 25, 12);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    dir.shadow.camera.left = -25; dir.shadow.camera.right = 25;
+    dir.shadow.camera.top = 25; dir.shadow.camera.bottom = -25;
+    scene.add(dir);
+
+    // 地面（浅米色食堂地面）
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 40),
+      new THREE.MeshStandardMaterial({ color: 0xe8dcc8 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 后墙与侧墙
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d6, side: THREE.DoubleSide });
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(40, 6, 0.4), wallMat);
+    backWall.position.set(0, 3, -12);
+    backWall.castShadow = true;
+    scene.add(backWall);
+
+    const sideWallL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 6, 24), wallMat);
+    sideWallL.position.set(-20, 3, 0);
+    scene.add(sideWallL);
+
+    const sideWallR = sideWallL.clone();
+    sideWallR.position.set(20, 3, 0);
+    scene.add(sideWallR);
+
+    // 创建一组窗口柜台
+    const counterMat = new THREE.MeshStandardMaterial({ color: 0xb5651d });
+    const topMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a });
+    const signMat = new THREE.MeshStandardMaterial({ color: 0xc0392b });
+    const signText = ['窗口01', '窗口02', '窗口03', '窗口04', '窗口05', '窗口06'];
+
+    function makeCounter(x, label) {
+      const group = new THREE.Group();
+
+      const base = new THREE.Mesh(new THREE.BoxGeometry(3, 1.2, 1.5), counterMat);
+      base.position.y = 0.6;
+      base.castShadow = true;
+      group.add(base);
+
+      const top = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.15, 1.6), topMat);
+      top.position.y = 1.275;
+      top.castShadow = true;
+      group.add(top);
+
+      // 红色招牌
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.12), signMat);
+      sign.position.set(0, 3.2, -0.5);
+      sign.castShadow = true;
+      group.add(sign);
+
+      // 招牌文字（Canvas 贴图）
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 96;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#c0392b'; ctx.fillRect(0, 0, 256, 96);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 48px Microsoft YaHei';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 128, 48);
+      const tex = new THREE.CanvasTexture(cv);
+      const signFace = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.4, 0.7),
+        new THREE.MeshBasicMaterial({ map: tex })
+      );
+      signFace.position.set(0, 3.2, -0.42);
+      group.add(signFace);
+
+      group.position.set(x, 0, -10);
+      return group;
+    }
+
+    const spacing = 5;
+    const startX = -(spacing * (signText.length - 1)) / 2;
+    signText.forEach((t, i) => {
+      scene.add(makeCounter(startX + i * spacing, t));
+    });
+
+    // 中央取餐台
+    const pickup = new THREE.Mesh(new THREE.BoxGeometry(6, 0.9, 1.6), counterMat);
+    pickup.position.set(0, 0.45, 2);
+    pickup.castShadow = true;
+    scene.add(pickup);
+
+    const pickupTop = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.12, 1.7), topMat);
+    pickupTop.position.set(0, 0.96, 2);
+    scene.add(pickupTop);
+
+    // 餐桌与椅子
+    const tableMat = new THREE.MeshStandardMaterial({ color: 0xd9b38c });
+    const chairMat = new THREE.MeshStandardMaterial({ color: 0x8a5a3b });
+
+    function makeTable(x, z) {
+      const g = new THREE.Group();
+      const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.12, 2), tableMat);
+      top.position.y = 1.05; top.castShadow = true;
+      g.add(top);
+      const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1, 0.18), chairMat);
+      leg1.position.set(-0.85, 0.5, -0.85); g.add(leg1);
+      const leg2 = leg1.clone(); leg2.position.set(0.85, 0.5, -0.85); g.add(leg2);
+      const leg3 = leg1.clone(); leg3.position.set(-0.85, 0.5, 0.85); g.add(leg3);
+      const leg4 = leg1.clone(); leg4.position.set(0.85, 0.5, 0.85); g.add(leg4);
+
+      // 四把椅子
+      [[-1.6, 0], [1.6, 0], [0, -1.6], [0, 1.6]].forEach(([cx, cz]) => {
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), chairMat);
+        seat.position.set(cx, 0.55, cz); seat.castShadow = true; g.add(seat);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.08), chairMat);
+        back.position.set(cx, 0.85, cz - (cz === 0 ? -0.21 : 0) + (cz > 0 ? -0.21 : cz < 0 ? 0.21 : 0));
+        g.add(back);
+      });
+
+      g.position.set(x, 0, z);
+      return g;
+    }
+
+    const tablePositions = [
+      [-8, 6], [-4, 6], [4, 6], [8, 6],
+      [-8, -2], [8, -2]
+    ];
+    tablePositions.forEach(([x, z]) => scene.add(makeTable(x, z)));
+
+    // 屋顶横梁
+    const beamMat = new THREE.MeshStandardMaterial({ color: 0xcfc3b0 });
+    for (let i = -1; i <= 1; i++) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(40, 0.4, 0.6), beamMat);
+      beam.position.set(0, 6, i * 8);
+      scene.add(beam);
+    }
+
+    // 入口标识柱
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32 });
+    [-6, 6].forEach(x => {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 16), pillarMat);
+      p.position.set(x, 2, 12);
+      p.castShadow = true;
+      scene.add(p);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+  </script>
+</body>
+</html>
