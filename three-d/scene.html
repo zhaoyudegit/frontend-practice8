@@ -6,15 +6,8 @@
   <title>校园地标三维区</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../css/custom.css">
-  <!-- importmap 配置ESM模块映射，修复OrbitControls -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
   <style>
     #canvas-container{width:100%;height:500px;}
   </style>
@@ -44,11 +37,8 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- type="module" 模块脚本，使用import导入 -->
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
+<script>
+// 完全遵循指南7的Three.js最小场景范式
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf0f8ff);
@@ -62,8 +52,8 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(container.clientWidth, container.clientHeight);
 container.appendChild(renderer.domElement);
 
-//轨道控制器
-const controls = new OrbitControls(camera, renderer.domElement);
+//轨道控制器 OrbitControls 指南7
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 //地面
@@ -80,7 +70,7 @@ const building = new THREE.Mesh(buildingGeo, buildingMat);
 building.position.y = 1.25;
 scene.add(building);
 
-//双光源：环境光+方向光
+//双光源：环境光+方向光（指南7标准）
 scene.add(new THREE.AmbientLight(0xffffff,0.4));
 const dirLight = new THREE.DirectionalLight(0xffffff, 1);
 dirLight.position.set(5,8,5);
@@ -94,7 +84,7 @@ function animate(){
 }
 animate();
 
-//窗口resize适配
+//窗口resize适配（指南7必做）
 window.addEventListener("resize",()=>{
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
