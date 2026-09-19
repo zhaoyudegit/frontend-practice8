@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>菜品浏览 - 校园食堂中心</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">校园食堂中心</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="index.html">首页</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-list.html">食堂查询</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-chart.html">数据统计</a></li>
+          <li class="nav-item"><a class="nav-link active" href="canteen-food.html">菜品浏览</a></li>
+          <li class="nav-item"><a class="nav-link" href="three-d/canteen-scene.html">食堂三维</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">热门菜品浏览</h2>
+
+    <div class="mb-4" id="tagBar">
+      <span class="text-muted me-2">标签筛选：</span>
+      <button class="btn btn-sm btn-outline-success me-2 active" data-tag="all">全部</button>
+    </div>
+
+    <div id="foodCount" class="text-muted mb-3">共 0 道菜品</div>
+
+    <div id="foodList" class="row g-4">
+      <!-- 菜品卡片由 JS 生成 -->
+    </div>
+
+    <div id="emptyTip" class="text-center text-muted py-5 d-none">
+      <p>没有匹配的菜品，请选择其他标签。</p>
+    </div>
+  </main>
+
+  <footer class="bg-light py-4 text-center">
+    <p>校园食堂公共信息与数据展示中心 © 2026</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let allFoods = [];
+    let currentTag = 'all';
+
+    const tagBar = document.getElementById('tagBar');
+    const foodList = document.getElementById('foodList');
+    const foodCount = document.getElementById('foodCount');
+    const emptyTip = document.getElementById('emptyTip');
+
+    const tagColor = {
+      "推荐": "danger", "热销": "warning", "素食": "success",
+      "辛辣": "primary", "饮品": "info", "清真": "secondary"
+    };
+
+    function render() {
+      const list = currentTag === 'all' ? allFoods : allFoods.filter(f => f.tag === currentTag);
+      foodList.innerHTML = '';
+      foodCount.textContent = `共 ${list.length} 道菜品`;
+      emptyTip.classList.toggle('d-none', list.length > 0);
+
+      list.forEach(f => {
+        const color = tagColor[f.tag] || 'secondary';
+        const card = `
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-${color}">${f.tag}</span>
+                  <span class="text-muted">窗口 ${f.window}</span>
+                </div>
+                <h5 class="card-title">${f.name}</h5>
+                <p class="card-text fs-4 text-danger fw-bold mb-0">¥${f.price}</p>
+              </div>
+            </div>
+          </div>`;
+        foodList.insertAdjacentHTML('beforeend', card);
+      });
+    }
+
+    function buildTagBar() {
+      const tags = [...new Set(allFoods.map(f => f.tag))];
+      tags.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-outline-success me-2';
+        btn.dataset.tag = t;
+        btn.textContent = t;
+        tagBar.appendChild(btn);
+      });
+
+      tagBar.addEventListener('click', e => {
+        const btn = e.target.closest('button[data-tag]');
+        if (!btn) return;
+        currentTag = btn.dataset.tag;
+        tagBar.querySelectorAll('button[data-tag]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+      });
+    }
+
+    fetch('data/canteen-data.json')
+      .then(res => res.json())
+      .then(data => {
+        allFoods = data.foods;
+        buildTagBar();
+        render();
+      })
+      .catch(err => {
+        foodList.innerHTML = '<div class="col-12 text-center text-danger py-5">数据加载失败，请检查 data/canteen-data.json。</div>';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
