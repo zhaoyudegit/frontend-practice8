@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>就餐数据统计 - 校园食堂中心</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">校园食堂中心</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="index.html">首页</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-list.html">食堂查询</a></li>
+          <li class="nav-item"><a class="nav-link active" href="canteen-chart.html">数据统计</a></li>
+          <li class="nav-item"><a class="nav-link" href="canteen-food.html">菜品浏览</a></li>
+          <li class="nav-item"><a class="nav-link" href="three-d/canteen-scene.html">食堂三维</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">就餐数据统计</h2>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3" id="barTitle">柱状图加载中…</h5>
+            <div id="barChart" style="width:100%;height:380px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">窗口占比饼图</h5>
+            <div id="pieChart" style="width:100%;height:380px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h5 class="card-title">数据说明</h5>
+        <ul id="dataMeta" class="mb-0 text-muted">
+          <li>单位：人次</li>
+          <li>数据来源：校园食堂模拟数据</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-light py-4 text-center">
+    <p>校园食堂公共信息与数据展示中心 © 2026</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script>
+    fetch('data/canteen-data.json')
+      .then(res => res.json())
+      .then(data => {
+        const cfg = data.chart;
+        document.getElementById('barTitle').textContent = cfg.title;
+
+        const barChart = echarts.init(document.getElementById('barChart'));
+        barChart.setOption({
+          tooltip: { trigger: 'axis' },
+          xAxis: { type: 'category', name: '窗口编号', data: cfg.windows },
+          yAxis: { type: 'value', name: cfg.unit },
+          series: [{
+            name: cfg.unit,
+            type: 'bar',
+            data: cfg.values,
+            itemStyle: { color: '#198754' },
+            label: { show: true, position: 'top' }
+          }]
+        });
+
+        const pieChart = echarts.init(document.getElementById('pieChart'));
+        const pieData = cfg.windows.map((w, i) => ({ name: `窗口 ${w}`, value: cfg.values[i] }));
+        pieChart.setOption({
+          tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+          legend: { bottom: 0 },
+          series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            data: pieData,
+            label: { formatter: '{b}\n{d}%' }
+          }]
+        });
+
+        window.addEventListener('resize', () => { barChart.resize(); pieChart.resize(); });
+      })
+      .catch(err => {
+        document.getElementById('barTitle').textContent = '数据加载失败';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
