@@ -1,0 +1,27 @@
+{
+  "windows": [
+    { "name": "一楼综合窗口A", "floor": "1", "type": "家常菜", "status": "open", "window": "01" },
+    { "name": "一楼面食窗口B", "floor": "1", "type": "面食", "status": "open", "window": "02" },
+    { "name": "二楼清真窗口C", "floor": "2", "type": "清真", "status": "close", "window": "03" },
+    { "name": "二楼风味窗口D", "floor": "2", "type": "风味", "status": "open", "window": "04" },
+    { "name": "三楼快餐窗口E", "floor": "3", "type": "快餐", "status": "open", "window": "05" },
+    { "name": "三楼奶茶窗口F", "floor": "3", "type": "饮品", "status": "close", "window": "06" }
+  ],
+  "chart": {
+    "title": "各窗口午餐就餐人数统计",
+    "unit": "人次",
+    "source": "校园食堂模拟数据",
+    "windows": ["01", "02", "03", "04", "05", "06"],
+    "values": [320, 280, 90, 410, 360, 150]
+  },
+  "foods": [
+    { "name": "红烧肉饭", "price": 15, "tag": "推荐", "window": "01" },
+    { "name": "牛肉面", "price": 12, "tag": "热销", "window": "02" },
+    { "name": "番茄鸡蛋饭", "price": 10, "tag": "素食", "window": "01" },
+    { "name": "麻辣香锅", "price": 18, "tag": "辛辣", "window": "04" },
+    { "name": "奶茶", "price": 8, "tag": "饮品", "window": "06" },
+    { "name": "炸鸡排饭", "price": 14, "tag": "推荐", "window": "05" },
+    { "name": "兰州拉面", "price": 13, "tag": "热销", "window": "02" },
+    { "name": "清炖羊肉", "price": 20, "tag": "清真", "window": "03" }
+  ]
+}
